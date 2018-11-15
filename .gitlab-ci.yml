@@ -27,7 +27,7 @@ deploy:production:
     - echo $APP_YAML_BASE64 | base64 -d > ./app.yaml
     - gcloud auth activate-service-account --key-file /tmp/$CI_PIPELINE_ID.json
     - gcloud config set project $GCP_PROJECT_ID
-    - gcloud --quiet app deploy
+    - CGO_ENABLED=1 gcloud --quiet app deploy
     - curl --fail https://hodlclub-api-dot-$GCP_PROJECT_ID.appspot.com/status
   only:
     - master
