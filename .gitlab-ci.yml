@@ -15,20 +15,20 @@ before_script:
   - mkdir -p /builds/$CI_PROJECT_PATH
   - export GOPATH=$GOPATH
 
-deploy:staging:
+deploy:production:
   stage: deploy
   environment:
-    name: staging
+    name: production
   script:
     - cd $APP_PATH
     - echo "Deploy to staging target GAE instance with project ID $GCP_PROJECT_ID"
     - echo $GCP_KEY > /tmp/$CI_PIPELINE_ID.json
     - echo -n "+ using GCP KEY for staging deployer " && cat /tmp/$CI_PIPELINE_ID.json
-    # - echo $APP_YAML_BASE64 | base64 -d > ./app.yaml
+    - echo $APP_YAML_BASE64 | base64 -d > ./app.yaml
     - gcloud auth activate-service-account --key-file /tmp/$CI_PIPELINE_ID.json
     - gcloud config set project $GCP_PROJECT_ID
     - gcloud --quiet app deploy
-    - curl --fail https://$CI_PROJECT_NAME-dot-$GCP_PROJECT_ID.appspot.com/status
+    - curl --fail https://hodlclub-api-dot-$GCP_PROJECT_ID.appspot.com/status
   only:
     - master
   allow_failure: false
