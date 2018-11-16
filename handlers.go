@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"math/big"
 	"net/http"
+	"strconv"
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -46,7 +48,7 @@ func processBlockchainHandler(c *gin.Context) {
 	blockHeight := int64(0)
 
 	lb := LastBlock{}
-	err = db.Table("last_blocks").First(&lb).Error
+	err = db.Table("last_blocks").Where(LastBlock{Key: "block"}).First(&lb).Error
 	if err != nil {
 		logger.Warningf("unable to count last_blocks, error was: %s using starting block: %s", err.Error(), startingBlock)
 	}
@@ -54,7 +56,7 @@ func processBlockchainHandler(c *gin.Context) {
 	nodeConnection, err = ethclient.Dial(ethNodeURL)
 
 	if err != nil {
-		m := fmt.Sprintf("error connecting to infura at: %s error was: %s", ethNodeURL, err.Error())
+		m := fmt.Sprintf("error connecting to node at: %s error was: %s", ethNodeURL, err.Error())
 		logger.Errorf(m)
 		c.JSON(http.StatusInternalServerError, gin.H{"message": m})
 		return
@@ -68,12 +70,6 @@ func processBlockchainHandler(c *gin.Context) {
 		return
 	}
 
-	dc, err := contractInstance.Decimals(&bind.CallOpts{})
-	if err != nil {
-		fmt.Printf("ERR: %+v\n", err)
-	}
-	fmt.Printf("DUMP: %+v\n", dc)
-
 	var blacklisted []BlacklistRecord
 	err = db.Find(&blacklisted).Error
 	if err != nil {
@@ -84,10 +80,29 @@ func processBlockchainHandler(c *gin.Context) {
 		blacklistedHashes[blh.Hash] = true
 	}
 
-	logger.Infof("analysing blockchain from block: %d", uint64(lb.BlockHeight))
+	header, err := nodeConnection.HeaderByNumber(context.Background(), nil)
+	if err != nil {
+		logger.Warningf("unable to reteive highest block number, error was: %s", err.Error())
+	}
+	h, _ := strconv.Atoi(fmt.Sprintf("%s", header.Number.String()))
+	heighestBlock := uint64(h)
 
-	itr, err := contractInstance.FilterTransfer(&bind.FilterOpts{Start: uint64(lb.BlockHeight)}, []common.Address{}, []common.Address{})
-	// itr, err := contractInstance.FilterTransfer(&bind.FilterOpts{Start: uint64(6705124)}, []common.Address{}, []common.Address{})
+	logger.Infof("highest block in the main net: %d", heighestBlock)
+
+	start := uint64(lb.BlockHeight)
+	end := uint64(lb.BlockHeight + 20000)
+
+	if end > heighestBlock {
+		logger.Infof("end block exceeds highest block in the main net, reducing to: %d", heighestBlock)
+		end = heighestBlock
+	}
+
+	opts := &bind.FilterOpts{
+		Start: start,
+		End:   &end,
+	}
+	logger.Infof("analysing blockchain filter transer events from block: %d to %d", start, end)
+	itr, err := contractInstance.FilterTransfer(opts, []common.Address{}, []common.Address{})
 	if err != nil {
 		logger.Fatalf("error getting FilterTransfer, error was:  %s", err.Error())
 	}
@@ -142,14 +157,15 @@ func processBlockchainHandler(c *gin.Context) {
 	}
 	logger.Infof("inserted: %d hodl club member hashes", insertedCount)
 
-	err = updateLastBlockProcessed(lowestBlockHeight)
+	err = updateLastBlockProcessed(int64(end))
 	if err != nil {
 		logger.Errorf("error updating last processed block height: %s", err.Error())
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"status":            "OK",
-		"memberCount":       insertedCount,
-		"lowestBlockHeight": lowestBlockHeight,
+		"status":      "OK",
+		"memberCount": insertedCount,
+		"blockFrom":   int64(start),
+		"blockTo":     int64(end),
 	})
 }
 

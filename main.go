@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -14,16 +15,13 @@ import (
 )
 
 var (
-	serviceID = "hodlclub-api"
-	router    *gin.Engine
-	logger    = logging.MustGetLogger("main")
-	startedAt = time.Now()
-	// ethNodeURL = "https://mainnet.infura.io/v3/4feb084407684fbcafdeac4dd88a2e83"
-	ethNodeURL = "https://inherently-fast-salmon.quiknode.io:443/568eb2c7-8118-47e6-a518-7549987fef57/V2Ul02LX0aGtV7TVObmL8A==/"
-	// ethNodeURL       = "http://localhost:8545"
+	serviceID        = "hodlclub-api"
+	router           *gin.Engine
+	logger           = logging.MustGetLogger("main")
+	startedAt        = time.Now()
+	ethNodeURL       = "wss://mainnet.infura.io/ws/v3"
 	canyCoinContract = "0x1d462414fe14cf489c7a21cac78509f4bf8cd7c0"
 	startingBlock    = int64(4332959)
-	// startingBlock    = int64(6664087)
 	nodeConnection   *ethclient.Client
 	contractInstance *CanYaCoin
 	db               *gorm.DB
@@ -65,6 +63,9 @@ func init() {
 			logger.Errorf("error updating last processed block height: %s", err.Error())
 		}
 	}
+
+	apiKey := mustGetenv("INFURA_API_KEY")
+	ethNodeURL = fmt.Sprintf("%s/%s", ethNodeURL, apiKey)
 
 	router = gin.Default()
 	router.Use(gin.Logger())

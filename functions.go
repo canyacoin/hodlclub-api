@@ -67,17 +67,28 @@ func bf2f64(a *big.Float) float64 {
 }
 
 func updateLastBlockProcessed(i int64) error {
-	lb := LastBlock{BlockHeight: i}
-	err := db.Table("last_blocks").Create(&lb).Error
+	lb := LastBlock{BlockHeight: i, Key: "block"}
+	// err := db.Table("last_blocks").Where(LastBlock{Key: "block"}).Assign(&lb).FirstOrCreate(&lb).Error
+	err := db.Table("last_blocks").Where(LastBlock{Key: "block"}).FirstOrCreate(&lb).Error
 	if err != nil {
 		logger.Errorf("unable to set last_blocks default value: %s", err.Error())
 	}
+
+	err = db.Exec("UPDATE last_blocks SET block_height = ?", i).Error
+	if err != nil {
+		logger.Errorf("unable to save last_block record: %s", err.Error())
+	}
+
 	logger.Debugf("updated last block height to: %d", i)
 	return err
 }
 
 func upsertClubMember(br BalanceRecord) error {
 	logger.Debugf("upserting balance record for hash: %s with balance: %d at block height: %d", br.Hash, br.Balance, br.BlockHeight)
-	err := db.Table("balances").Where(BalanceRecord{Hash: br.Hash}).Assign(BalanceRecord{Balance: br.Balance, BlockHeight: br.BlockHeight}).FirstOrCreate(&br).Error
+
+	// err := db.Table("balances").Where(BalanceRecord{Hash: br.Hash}).Assign(BalanceRecord{Balance: br.Balance, BlockHeight: br.BlockHeight}).FirstOrCreate(&br).Error
+
+	err := db.Exec("UPDATE balances SET balance = ?, block_height = ? WHERE hash = ?", br.Balance, br.BlockHeight, br.Hash).Error
+
 	return err
 }

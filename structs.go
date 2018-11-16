@@ -17,7 +17,8 @@ func (BalanceRecord) TableName() string {
 // Represented as a database table, and json response from etherescan
 // It is intended that this table will hold a single record
 type LastBlock struct {
-	BlockHeight int64 `gorm:"column:block_height" json:"blockNumber,omitempty"`
+	Key         string `gorm:"column:key;type:varchar(255);unique_index" json:"key,omitempty"`
+	BlockHeight int64  `gorm:"column:block_height" json:"blockNumber,omitempty"`
 }
 
 // BlacklistRecord describes the data structure for Ethereum wallet addresses
