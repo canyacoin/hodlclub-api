@@ -296,6 +296,7 @@
     "github.com/ethereum/go-ethereum/event",
     "github.com/gin-contrib/cors",
     "github.com/gin-gonic/gin",
+    "github.com/golang/protobuf/proto",
     "github.com/jinzhu/gorm",
     "github.com/jinzhu/gorm/dialects/mysql",
     "github.com/op/go-logging",
