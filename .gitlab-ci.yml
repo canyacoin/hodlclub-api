@@ -25,7 +25,6 @@ deploy:production:
     - echo $GCP_KEY > /tmp/$CI_PIPELINE_ID.json
     - echo -n "+ using GCP KEY for staging deployer " && cat /tmp/$CI_PIPELINE_ID.json
     - echo $APP_YAML_BASE64 | base64 -d > ./app.yaml
-    - go build
     - gcloud auth activate-service-account --key-file /tmp/$CI_PIPELINE_ID.json
     - gcloud config set project $GCP_PROJECT_ID
     - CGO_ENABLED=1 gcloud --quiet app deploy
