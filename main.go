@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"time"
 
@@ -19,7 +18,7 @@ var (
 	router           *gin.Engine
 	logger           = logging.MustGetLogger("main")
 	startedAt        = time.Now()
-	ethNodeURL       = "wss://mainnet.infura.io/ws/v3"
+	ethNodeURL       string
 	canyCoinContract = "0x1d462414fe14cf489c7a21cac78509f4bf8cd7c0"
 	startingBlock    = int64(4332959)
 	nodeConnection   *ethclient.Client
@@ -64,8 +63,7 @@ func init() {
 		}
 	}
 
-	apiKey := mustGetenv("INFURA_API_KEY")
-	ethNodeURL = fmt.Sprintf("%s/%s", ethNodeURL, apiKey)
+	ethNodeURL = mustGetenv("ETH_NODE_URL")
 
 	router = gin.Default()
 	router.Use(gin.Logger())

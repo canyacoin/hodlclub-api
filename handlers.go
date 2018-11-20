@@ -53,7 +53,7 @@ func processBlockchainHandler(c *gin.Context) {
 		logger.Warningf("unable to count last_blocks, error was: %s using starting block: %s", err.Error(), startingBlock)
 	}
 
-	nodeConnection, err = ethclient.Dial(ethNodeURL)
+	nodeConnection, err = ethclient.Dial("https://inherently-fast-salmon.quiknode.io/568eb2c7-8118-47e6-a518-7549987fef57/z8XJtqvC36I59F-6Zt5egg==/")
 
 	if err != nil {
 		m := fmt.Sprintf("error connecting to node at: %s error was: %s", ethNodeURL, err.Error())

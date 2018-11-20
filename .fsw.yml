@@ -6,9 +6,9 @@ triggers:
   - '**/*.tpl'
   - '**/*.ym*l'
   env:
-    INFURA_API_KEY: ""
+    ETH_NODE_URL: ""
     DSN: "root:password@tcp(localhost:3306)/hodl_club"
-  cmd: clear; CGO_ENABLE=1 go build && ./web-app-api
+  cmd: clear; go build && ./web-app-api
   shell: true
   delay: 100ms
   stop_timeout: 500ms
