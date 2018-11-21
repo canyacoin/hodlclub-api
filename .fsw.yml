@@ -8,7 +8,7 @@ triggers:
   env:
     ETH_NODE_URL: ""
     DSN: "root:password@tcp(localhost:3306)/hodl_club"
-  cmd: clear; go build && ./web-app-api
+  cmd: clear; GOOS=linux GOARCH=amd64 go build -v -o ./web-app-api.linux-x64 . && ./web-app-api.linux-x64
   shell: true
   delay: 100ms
   stop_timeout: 500ms
@@ -17,3 +17,5 @@ triggers:
 watch_paths:
 - .
 watch_depth: 0
+
+

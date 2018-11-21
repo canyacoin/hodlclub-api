@@ -1,2 +1,5 @@
 web-app-api
+web-app-api.linux-x64
 app.yaml
+app.gae-standard.yaml
+app.gae-flex.yaml
