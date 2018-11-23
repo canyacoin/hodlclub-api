@@ -85,10 +85,18 @@ func updateLastBlockProcessed(i int64) error {
 
 func upsertClubMember(br BalanceRecord) error {
 	logger.Debugf("upserting balance record for hash: %s with balance: %d at block height: %d", br.Hash, br.Balance, br.BlockHeight)
+	var err error
+	err = db.Table("balances").Where(BalanceRecord{Hash: br.Hash}).FirstOrCreate(&br).Error
+	if err != nil {
+		logger.Errorf("unable to set balances for hash: %s default value: %s", br.Hash, err.Error())
+	}
 
-	// err := db.Table("balances").Where(BalanceRecord{Hash: br.Hash}).Assign(BalanceRecord{Balance: br.Balance, BlockHeight: br.BlockHeight}).FirstOrCreate(&br).Error
+	err = db.Exec("UPDATE balances SET balance = ?, block_height = ? WHERE hash = ?", br.Balance, br.BlockHeight, br.Hash).Error
+	if err != nil {
+		logger.Errorf("unable to save balances record: %s", err.Error())
+	}
 
-	err := db.Exec("UPDATE balances SET balance = ?, block_height = ? WHERE hash = ?", br.Balance, br.BlockHeight, br.Hash).Error
+	logger.Debugf("updated balance to: %d at block height %d for hash: %s", br.Balance, br.BlockHeight, br.Hash)
 
 	return err
 }
