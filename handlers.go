@@ -53,7 +53,7 @@ func processBlockchainHandler(c *gin.Context) {
 		logger.Warningf("unable to count last_blocks, error was: %s using starting block: %s", err.Error(), startingBlock)
 	}
 
-	nodeConnection, err = ethclient.Dial("https://inherently-fast-salmon.quiknode.io/568eb2c7-8118-47e6-a518-7549987fef57/z8XJtqvC36I59F-6Zt5egg==/")
+	nodeConnection, err = ethclient.Dial(ethNodeURL)
 
 	if err != nil {
 		m := fmt.Sprintf("error connecting to node at: %s error was: %s", ethNodeURL, err.Error())
@@ -170,9 +170,32 @@ func processBlockchainHandler(c *gin.Context) {
 }
 
 func statusHandler(c *gin.Context) {
+	var err error
+
+	lb := LastBlock{}
+	err = db.Table("last_blocks").Where(LastBlock{Key: "block"}).First(&lb).Error
+	if err != nil {
+		logger.Warningf("unable to count last_blocks, error was: %s using starting block: %s", err.Error(), startingBlock)
+	}
+
+	var countT2 uint
+	err = db.Table("balances").Where("balance >= 2500 AND balance < 10000").Count(&countT2).Error
+	if err != nil {
+		logger.Fatalf("unable to count t2 members: %s", err.Error())
+	}
+
+	var countOg uint
+	err = db.Table("balances").Where("balance >= 10000").Count(&countOg).Error
+	if err != nil {
+		logger.Fatalf("unable to count og members: %s", err.Error())
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"status":         "OK",
-		"serviceID":      serviceID,
-		"serviceStarted": humanize.Time(startedAt),
+		"status":                 "OK",
+		"serviceID":              serviceID,
+		"serviceStarted":         humanize.Time(startedAt),
+		"heighestBlockProcessed": lb.BlockHeight,
+		"memberCountOG":          countOg,
+		"memberCountT2":          countT2,
 	})
 }
