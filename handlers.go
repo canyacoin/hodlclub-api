@@ -191,11 +191,11 @@ func statusHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"status":                 "OK",
-		"serviceID":              serviceID,
-		"serviceStarted":         humanize.Time(startedAt),
-		"heighestBlockProcessed": lb.BlockHeight,
-		"memberCountOG":          countOg,
-		"memberCountT2":          countT2,
+		"status":                "OK",
+		"serviceID":             serviceID,
+		"serviceStarted":        humanize.Time(startedAt),
+		"highestBlockProcessed": lb.BlockHeight,
+		"memberCountOG":         countOg,
+		"memberCountT2":         countT2,
 	})
 }
