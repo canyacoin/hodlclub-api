@@ -90,7 +90,7 @@ func processBlockchainHandler(c *gin.Context) {
 	logger.Infof("highest block in the main net: %d", heighestBlock)
 
 	start := uint64(lb.BlockHeight)
-	end := uint64(lb.BlockHeight + 2000)
+	end := uint64(lb.BlockHeight + 501)
 
 	if end > heighestBlock {
 		logger.Infof("end block exceeds highest block in the main net, reducing to: %d", heighestBlock)
