@@ -69,7 +69,7 @@ func init() {
 	router.Use(gin.Logger())
 
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:3000", "https://hodl-club.firebaseapp.com", "https://hodl.canya.com"}
+	config.AllowOrigins = []string{"http://localhost:3000", "https://hodl-club.firebaseapp.com", "https://hodl.canya.com", "https://hodls.club"}
 	router.Use(cors.New(config))
 
 	router.GET("/status", statusHandler)
