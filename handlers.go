@@ -21,6 +21,27 @@ func rootHandler(c *gin.Context) {
 	})
 }
 
+func hodlTotalsHandler(c *gin.Context) {
+	var err error
+
+	type SumQueryResult struct {
+		Total int
+	}
+	var sumQueryResult SumQueryResult
+
+	logger.Debugf("get the total hodl amount")
+	err = db.Raw("SELECT SUM(balance) AS total FROM balances WHERE balance >= 2500").Scan(&sumQueryResult).Error
+
+	if err != nil {
+		logger.Warningf("unable to sum balances, error was: %s", err.Error())
+	}
+
+	logger.Warningf("Total: ", sumQueryResult.Total)
+
+	c.JSON(http.StatusOK, sumQueryResult.Total)
+
+}
+
 func hodlersHandler(c *gin.Context) {
 	var err error
 	var balances []BalanceRecord
@@ -41,6 +62,7 @@ func hodlersHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, balances)
 
 }
+
 func processBlockchainHandler(c *gin.Context) {
 	var err error
 	verifiedHashes := make(map[string]BalanceRecord)
@@ -189,7 +211,6 @@ func statusHandler(c *gin.Context) {
 	if err != nil {
 		logger.Fatalf("unable to count og members: %s", err.Error())
 	}
-
 	c.JSON(http.StatusOK, gin.H{
 		"status":                "OK",
 		"serviceID":             serviceID,
@@ -197,5 +218,5 @@ func statusHandler(c *gin.Context) {
 		"highestBlockProcessed": lb.BlockHeight,
 		"memberCountOG":         countOg,
 		"memberCountT2":         countT2,
-	})
+	}) 
 }
