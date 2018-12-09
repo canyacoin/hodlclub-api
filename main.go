@@ -76,6 +76,7 @@ func init() {
 	router.GET("/hodlers", hodlersHandler)
 	router.GET("/hodltotal", hodlTotalsHandler)
 	router.GET("/process-blockchain", processBlockchainHandler)
+	router.GET("/verify-membership", verifyMembershipHandler)
 	router.GET("/", rootHandler)
 }
 

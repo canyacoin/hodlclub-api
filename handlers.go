@@ -63,6 +63,66 @@ func hodlersHandler(c *gin.Context) {
 
 }
 
+func verifyMembershipHandler(c *gin.Context) {
+	var err error
+
+	balances := []BalanceRecord{}
+	err = db.Find(&balances).Error
+	if err != nil {
+		logger.Warningf("unable to get balances, error was: %s", err.Error())
+	}
+
+	nodeConnection, err = ethclient.Dial(ethNodeURL)
+	if err != nil {
+		m := fmt.Sprintf("error connecting to node at: %s error was: %s", ethNodeURL, err.Error())
+		logger.Errorf(m)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": m})
+		return
+	}
+
+	contractInstance, err = NewCanYaCoin(common.HexToAddress(canyCoinContract), nodeConnection)
+	if err != nil {
+		m := fmt.Sprintf("error loading contract: %s error was: %s", canyCoinContract, err.Error())
+		logger.Errorf(m)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": m})
+		return
+	}
+
+	for _, br := range balances {
+		a := common.HexToAddress(br.Hash)
+		canValue, _, err := getCanBalanceAtWalletAddress(a)
+		if err != nil {
+			logger.Warningf("unable to get balance at address: %s error was: %s", a.String(), err.Error())
+		}
+		canf64 := bf2f64(canValue)
+		ci64 := int64(math.Floor(canf64))
+		if err != nil {
+			logger.Errorf("unable to cast: %v to int, error was: %s", *canValue, err.Error())
+		}
+
+		updateCount := 0
+		removedCount := 0
+
+		logger.Debugf("address: %s has previous balance of %d and verified balance of: %d", a.String(), br.Balance, ci64)
+		if ci64 < br.Balance {
+			removedCount--
+			logger.Debugf("new balance is less than previous, removing from hodl club")
+			err = db.Delete(BalanceRecord{}, "hash LIKE ?", a.String()).Error
+			if err != nil {
+				logger.Errorf("unable to delete balances record by hash: %s, error was: %s", err.Error())
+			}
+		} else if ci64 > br.Balance {
+			updateCount++
+			logger.Debugf("new balance is greater than previous, updating balance")
+			err = db.Exec("UPDATE balances SET balance = ? WHERE hash = ?", ci64, br.Hash).Error
+			if err != nil {
+				logger.Errorf("unable to save balances record: %s", err.Error())
+			}
+		}
+	}
+
+}
+
 func processBlockchainHandler(c *gin.Context) {
 	var err error
 	verifiedHashes := make(map[string]BalanceRecord)
@@ -76,7 +136,6 @@ func processBlockchainHandler(c *gin.Context) {
 	}
 
 	nodeConnection, err = ethclient.Dial(ethNodeURL)
-
 	if err != nil {
 		m := fmt.Sprintf("error connecting to node at: %s error was: %s", ethNodeURL, err.Error())
 		logger.Errorf(m)

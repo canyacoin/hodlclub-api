@@ -8,7 +8,7 @@ triggers:
   env:
     ETH_NODE_URL: "https://inherently-fast-salmon.quiknode.io/568eb2c7-8118-47e6-a518-7549987fef57/z8XJtqvC36I59F-6Zt5egg==/"
     # DSN: "root:password@tcp(localhost:3306)/hodl_club"
-    DSN: "sql12266521:XXX@tcp(sql12.freemysqlhosting.net:3306)/sql12266521?parseTime=true"
+    DSN: "sql12266521:lcfj1nalnx@tcp(sql12.freemysqlhosting.net:3306)/sql12266521?parseTime=true"
   cmd: clear; GOOS=linux GOARCH=amd64 go build -v -o ./web-app-api.linux-x64 . && ./web-app-api.linux-x64
   cmd: clear; go build && ./web-app-api
   shell: true
