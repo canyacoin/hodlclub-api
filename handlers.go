@@ -36,7 +36,7 @@ func hodlTotalsHandler(c *gin.Context) {
 		logger.Warningf("unable to sum balances, error was: %s", err.Error())
 	}
 
-	logger.Warningf("Total: ", sumQueryResult.Total)
+	logger.Debugf("total: ", sumQueryResult.Total)
 
 	c.JSON(http.StatusOK, sumQueryResult.Total)
 
@@ -49,10 +49,10 @@ func hodlersHandler(c *gin.Context) {
 
 	if q["tier"] != nil && q["tier"][0] == "OG" {
 		logger.Debugf("get the og")
-		err = db.Where("balance >= 10000").Order("balance desc").Find(&balances).Error
+		err = db.Where("balance >= 10000 OR is_og = 1").Order("balance desc").Find(&balances).Error
 	} else {
 		logger.Debugf("get t2")
-		err = db.Where("balance >= 2500 AND balance < 10000").Order("balance desc").Find(&balances).Error
+		err = db.Where("balance >= 2500 AND balance < 10000 AND is_og = 0").Order("balance desc").Find(&balances).Error
 	}
 
 	if err != nil {
@@ -218,5 +218,5 @@ func statusHandler(c *gin.Context) {
 		"highestBlockProcessed": lb.BlockHeight,
 		"memberCountOG":         countOg,
 		"memberCountT2":         countT2,
-	}) 
+	})
 }

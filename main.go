@@ -41,7 +41,7 @@ func init() {
 	}
 
 	var tables []interface{}
-	tables = append(tables, &BalanceRecord{}, &LastBlock{}, &BlacklistRecord{})
+	tables = append(tables, &BalanceRecord{}, &LastBlock{}, &BlacklistRecord{}, &IcoOgRecord{})
 	for i := range tables {
 		err = db.AutoMigrate(tables[i]).Error
 		if err != nil {
